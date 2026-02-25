@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Roki</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <section class="hero card">
+        <div class="brand">
+          <img class="logo" src="logo-roki.svg" alt="לוגו Roki" />
+          <h1 class="brand-title">Roki</h1>
+        </div>
+        <p class="badge">מקום לחברים, משפחה וצמיחה עסקית</p>
+        <h2 class="hero-subtitle">בונים הצלחה ביחד, עם מקום לכולם</h2>
+        <p>
+          כאן לא מדובר בעוד רשימת לקוחות — מדובר באנשים שקרובים אליי. כל מי שנכנס לקהילה
+          משתלב בסביבה שמפרה אחד את השני, עם הכוונה אישית שלי לאורך הדרך.
+        </p>
+        <p>
+          כדי לשמור על איכות, לא כל אחד מתקבל. השאלון הבא בודק התאמה לקהילה.
+        </p>
+      </section>
+
+      <section class="card">
+        <h2>שאלון עומק והתאמה</h2>
+        <form id="filterForm" novalidate>
+          <div class="field">
+            <label for="productOffer">1. מה המוצר/שירות שאתה מציע?</label>
+            <textarea
+              id="productOffer"
+              rows="3"
+              required
+              placeholder="תאר/י בקצרה את המוצר/שירות, למי הוא מיועד ומה הערך המרכזי שלו"
+            ></textarea>
+          </div>
+
+          <fieldset class="field">
+            <legend>2. האם תבצע/י משימות באופן עקבי?</legend>
+            <label><input type="radio" name="tasks" value="yes" required /> כן</label>
+            <label><input type="radio" name="tasks" value="no" /> לא</label>
+          </fieldset>
+
+          <fieldset class="field">
+            <legend>3. האם את/ה פתוח/ה לתחקור DNA של העסק ולהצבת מראה אמיתית?</legend>
+            <label><input type="radio" name="dna" value="yes" required /> כן</label>
+            <label><input type="radio" name="dna" value="no" /> לא</label>
+          </fieldset>
+
+          <div class="field">
+            <label for="commitment">4. כמה שעות בשבוע את/ה יכול/ה להשקיע בתהליך?</label>
+            <input id="commitment" type="number" min="1" max="40" required placeholder="לדוגמה: 5" />
+          </div>
+
+          <div class="field">
+            <label for="extraInfo">5. מה עוד תרצה/י שאדע?</label>
+            <textarea
+              id="extraInfo"
+              rows="4"
+              placeholder="אפשר לשתף כאן רקע, מטרות או כל דבר שחשוב לך שאדע"
+            ></textarea>
+          </div>
+
+          <button class="primary" type="submit">בדיקת התאמה</button>
+        </form>
+
+        <div id="result" class="result" aria-live="polite"></div>
+
+        <div id="scheduleWrap" class="schedule hidden">
+          <button id="scheduleButton" class="secondary" type="button">lets scheduke a date</button>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
