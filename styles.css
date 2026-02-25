@@ -128,6 +128,12 @@ form {
   gap: 10px;
 }
 
+.contact-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
 label,
 legend {
   font-weight: 600;
@@ -246,5 +252,15 @@ button {
   .logo {
     width: 36px;
     height: 36px;
+  }
+
+  .contact-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) and (min-width: 641px) {
+  .contact-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
