@@ -10,3 +10,6 @@ venv/
 
 # Environment files
 .env
+
+# Local assets not tracked
+logo.roki.png
