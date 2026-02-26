@@ -116,6 +116,9 @@ app.post("/api/send-email", async (req, res) => {
       host: process.env.SMTP_HOST,
       port: Number(process.env.SMTP_PORT),
       secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
+      connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT || 10000),
+      greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT || 10000),
+      socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT || 15000),
       auth: {
         user: process.env.SMTP_USER,
         pass: process.env.SMTP_PASS,
