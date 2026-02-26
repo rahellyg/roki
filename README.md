@@ -51,3 +51,20 @@ window.ROKI_API_BASE_URL = "https://your-api.onrender.com";
 4. בצעי `git push` כדי לפרסם את השינוי ל-GitHub Pages.
 
 השרת כבר מוגדר עם CORS ולכן יכול לקבל בקשות מהאתר המפורסם.
+
+## פריסה מהירה ב-Render
+
+1. היכנסי ל-Render ובחרי **New +** → **Blueprint**.
+2. חברי את הריפו `rahellyg/roki`.
+3. Render יקרא אוטומטית את `render.yaml` ויקים את השירות.
+4. הגדירי ב-Render את ערכי הסביבה החסרים:
+	- `SMTP_HOST`
+	- `SMTP_USER`
+	- `SMTP_PASS`
+	- `MAIL_FROM`
+	- `MAIL_TO`
+5. אחרי שהשירות עולה, קחי את כתובת ה-URL שלו והדביקי ב-`config.js`:
+
+```js
+window.ROKI_API_BASE_URL = "https://your-render-service.onrender.com";
+```

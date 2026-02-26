@@ -74,6 +74,10 @@ app.use(express.json({ limit: "200kb" }));
 app.use(cors());
 app.use(express.static(__dirname));
 
+app.get("/health", (_req, res) => {
+  return res.json({ ok: true });
+});
+
 app.post("/api/send-email", async (req, res) => {
   try {
     const details = req.body?.details;
