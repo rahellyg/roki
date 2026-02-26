@@ -2,7 +2,6 @@ const filterForm = document.getElementById("filterForm");
 const resultBox = document.getElementById("result");
 const scheduleWrap = document.getElementById("scheduleWrap");
 const scheduleButton = document.getElementById("scheduleButton");
-const whatsappNumber = "972546955777";
 
 function setResult(message, isApproved) {
   resultBox.textContent = message;
@@ -11,28 +10,22 @@ function setResult(message, isApproved) {
   scheduleWrap.classList.toggle("hidden", !isApproved);
 }
 
-function openWhatsappWithDetails(details) {
-  const message = [
-    "ליד חדש מטופס ההתאמה - Roki",
-    "",
-    `שם: ${details.fullName}`,
-    `טלפון: ${details.phone}`,
-    `מייל: ${details.email}`,
-    "",
-    `מוצר/שירות: ${details.productOffer}`,
-    `ביצוע משימות: ${details.tasks === "yes" ? "כן" : "לא"}`,
-    `פתיחות לתחקור DNA: ${details.dna === "yes" ? "כן" : "לא"}`,
-    `שעות בשבוע: ${details.commitment}`,
-    `מידע נוסף: ${details.extraInfo || "לא צוין"}`,
-    "",
-    `סטטוס התאמה: ${details.approved ? "מתאים/ה" : "לא מתאים/ה כרגע"}`,
-  ].join("\n");
+async function sendWhatsappInBackground(details) {
+  const response = await fetch("/api/send-whatsapp", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ details }),
+  });
 
-  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
-  window.open(whatsappUrl, "_blank");
+  if (!response.ok) {
+    const data = await response.json().catch(() => ({}));
+    throw new Error(data.error || "FAILED_TO_SEND_WHATSAPP");
+  }
 }
 
-filterForm.addEventListener("submit", (event) => {
+filterForm.addEventListener("submit", async (event) => {
   event.preventDefault();
 
   const productOffer = document.getElementById("productOffer").value.trim();
@@ -80,7 +73,12 @@ filterForm.addEventListener("submit", (event) => {
       "מעולה! נראה שיש התאמה לקהילה. אפשר להמשיך לשלב הבא ולקבוע פגישה.",
       true
     );
-    openWhatsappWithDetails(formDetails);
+    sendWhatsappInBackground(formDetails).catch(() => {
+      setResult(
+        "מעולה! נראה שיש התאמה לקהילה, אבל שליחת הוואטסאפ כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
+        true
+      );
+    });
     return;
   }
 
@@ -88,7 +86,12 @@ filterForm.addEventListener("submit", (event) => {
     "כרגע נראה שאין התאמה למסגרת העבודה שלנו. אם בעתיד תהיה פתיחות לשיתוף פעולה והכוונה, נשמח לבדוק שוב.",
     false
   );
-  openWhatsappWithDetails(formDetails);
+  sendWhatsappInBackground(formDetails).catch(() => {
+    setResult(
+      "נראה שכרגע אין התאמה, וגם שליחת הוואטסאפ כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
+      false
+    );
+  });
 });
 
 scheduleButton.addEventListener("click", () => {

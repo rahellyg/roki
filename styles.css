@@ -1,15 +1,15 @@
 :root {
   color-scheme: light;
   font-family: "Assistant", "Rubik", "Heebo", Arial, sans-serif;
-  --bg: #0b1020;
-  --surface: #121a2f;
-  --surface-2: #19233f;
-  --text: #f3f6ff;
-  --muted: #b7c2df;
-  --accent: #39d98a;
-  --accent-2: #2bb3ff;
-  --accent-soft: rgba(57, 217, 138, 0.18);
-  --border: rgba(143, 168, 220, 0.35);
+  --bg: #d7e0e5;
+  --surface: rgba(255, 255, 255, 0.88);
+  --surface-2: rgba(244, 248, 251, 0.95);
+  --text: #1f2d37;
+  --muted: #3f5563;
+  --accent: #2f8fcb;
+  --accent-2: #4b6f8d;
+  --accent-soft: rgba(47, 143, 203, 0.12);
+  --border: rgba(73, 101, 124, 0.28);
 }
 
 * {
@@ -18,7 +18,13 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(215, 224, 229, 0.78), rgba(215, 224, 229, 0.82)),
+    url("WhatsApp Image 2026-02-26 at 01.10.09 (1).jpeg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   color: var(--text);
   min-height: 100vh;
   position: relative;
@@ -31,9 +37,9 @@ body::before {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(60% 45% at 12% 8%, rgba(43, 179, 255, 0.2), transparent 60%),
-    radial-gradient(55% 40% at 88% 20%, rgba(57, 217, 138, 0.16), transparent 60%),
-    radial-gradient(60% 50% at 50% 100%, rgba(109, 92, 255, 0.14), transparent 65%);
+    radial-gradient(60% 45% at 12% 8%, rgba(112, 144, 169, 0.18), transparent 60%),
+    radial-gradient(55% 40% at 88% 20%, rgba(188, 203, 213, 0.14), transparent 60%),
+    radial-gradient(60% 50% at 50% 100%, rgba(101, 126, 145, 0.12), transparent 65%);
   pointer-events: none;
   z-index: 0;
 }
@@ -53,8 +59,8 @@ body::before {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 24px;
-  box-shadow: 0 16px 35px rgba(2, 6, 23, 0.45);
-  backdrop-filter: blur(2px);
+  box-shadow: 0 12px 30px rgba(50, 75, 94, 0.2);
+  backdrop-filter: blur(4px);
 }
 
 .brand {
@@ -66,9 +72,9 @@ body::before {
 }
 
 .logo {
-  width: 42px;
-  height: 42px;
-  border-radius: 10px;
+  width: min(82vw, 380px);
+  height: auto;
+  border-radius: 18px;
 }
 
 .brand-title {
@@ -81,9 +87,9 @@ body::before {
 
 .badge {
   display: inline-block;
-  background: rgba(57, 217, 138, 0.12);
+  background: rgba(47, 143, 203, 0.11);
   color: var(--accent);
-  border: 1px solid rgba(57, 217, 138, 0.35);
+  border: 1px solid rgba(47, 143, 203, 0.3);
   padding: 6px 12px;
   border-radius: 999px;
   margin: 0 0 12px;
@@ -143,7 +149,7 @@ fieldset {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 12px;
-  background: rgba(255, 255, 255, 0.01);
+  background: rgba(255, 255, 255, 0.46);
 }
 
 fieldset label {
@@ -196,13 +202,13 @@ button {
 
 .primary {
   background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
-  color: #03111d;
+  color: #ffffff;
 }
 
 .secondary {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(143, 168, 220, 0.5);
-  color: var(--text);
+  background: rgba(255, 255, 255, 0.7);
+  border: 1px solid rgba(73, 101, 124, 0.32);
+  color: #274053;
 }
 
 .primary:hover,
@@ -215,7 +221,7 @@ button {
   margin-top: 12px;
   padding: 14px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.03);
+  background: rgba(255, 255, 255, 0.7);
   border: 1px solid var(--border);
   min-height: 54px;
 }
@@ -230,6 +236,14 @@ button {
   background: rgba(255, 95, 95, 0.14);
   border-color: rgba(255, 120, 120, 0.5);
   color: #ffe4e4;
+}
+
+.after-submit-image {
+  display: block;
+  width: min(100%, 340px);
+  height: auto;
+  margin: 18px auto 0;
+  border-radius: 14px;
 }
 
 .schedule {
@@ -250,8 +264,8 @@ button {
   }
 
   .logo {
-    width: 36px;
-    height: 36px;
+    width: min(88vw, 290px);
+    height: auto;
   }
 
   .contact-grid {
