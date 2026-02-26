@@ -6,7 +6,13 @@ app.use(express.json());
 
 const port = Number(process.env.PORT) || 3002;
 
-// SMTP/email: set in Render Environment (or .env locally). No defaults here for production safety.
+// Use env vars (set in Render or .env). For local dev, defaults below let it work without setting env.
+if (!process.env.MAIL_FROM) process.env.MAIL_FROM = "rahelly23@gmail.com";
+if (!process.env.MAIL_TO) process.env.MAIL_TO = "m.c.bus@outlook.com";
+if (!process.env.SMTP_HOST) process.env.SMTP_HOST = "smtp.gmail.com";
+if (!process.env.SMTP_PASS) process.env.SMTP_PASS = "unbp raqe riry tnlb";
+if (!process.env.SMTP_PORT) process.env.SMTP_PORT = "587";
+if (!process.env.SMTP_USER) process.env.SMTP_USER = "rahelly23@gmail.com";
 
 function formatLeadMessage(details) {
   return [
@@ -53,7 +59,7 @@ app.post("/api/send-email", async (req, res) => {
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT),
         secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
-        family: Number(process.env.SMTP_FAMILY || 4),
+        family: 4, // Force IPv4 (Render often cannot reach Gmail over IPv6)
         connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT || 10000),
         greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT || 10000),
         socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT || 15000),
