@@ -3,6 +3,21 @@ const resultBox = document.getElementById("result");
 const scheduleWrap = document.getElementById("scheduleWrap");
 const scheduleButton = document.getElementById("scheduleButton");
 
+const apiBaseUrl = (window.ROKI_API_BASE_URL || "").replace(/\/$/, "");
+const isGithubPages = window.location.hostname.endsWith("github.io");
+
+function getEmailApiUrl() {
+  if (apiBaseUrl) {
+    return `${apiBaseUrl}/api/send-email`;
+  }
+
+  if (isGithubPages) {
+    return null;
+  }
+
+  return "/api/send-email";
+}
+
 function setResult(message, isApproved) {
   resultBox.textContent = message;
   resultBox.classList.remove("ok", "no");
@@ -11,7 +26,13 @@ function setResult(message, isApproved) {
 }
 
 async function sendEmailInBackground(details) {
-  const response = await fetch("/api/send-email", {
+  const emailApiUrl = getEmailApiUrl();
+
+  if (!emailApiUrl) {
+    throw new Error("API_NOT_CONFIGURED");
+  }
+
+  const response = await fetch(emailApiUrl, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -21,6 +42,9 @@ async function sendEmailInBackground(details) {
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
+    if (response.status === 404 || response.status === 405) {
+      throw new Error("API_UNAVAILABLE");
+    }
     throw new Error(data.error || "FAILED_TO_SEND_EMAIL");
   }
 }
@@ -73,7 +97,15 @@ filterForm.addEventListener("submit", async (event) => {
       "מעולה! נראה שיש התאמה לקהילה. אפשר להמשיך לשלב הבא ולקבוע פגישה.",
       true
     );
-    sendEmailInBackground(formDetails).catch(() => {
+    sendEmailInBackground(formDetails).catch((error) => {
+      if (error?.message === "API_NOT_CONFIGURED" || error?.message === "API_UNAVAILABLE") {
+        setResult(
+          "האתר פורסם כסטטי ולכן שליחת מייל אינה זמינה כרגע. כדי לאפשר שליחה בפרסום צריך לחבר שרת API חיצוני.",
+          true
+        );
+        return;
+      }
+
       setResult(
         "מעולה! נראה שיש התאמה לקהילה, אבל שליחת המייל כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
         true
@@ -86,7 +118,15 @@ filterForm.addEventListener("submit", async (event) => {
     "כרגע נראה שאין התאמה למסגרת העבודה שלנו. אם בעתיד תהיה פתיחות לשיתוף פעולה והכוונה, נשמח לבדוק שוב.",
     false
   );
-  sendEmailInBackground(formDetails).catch(() => {
+  sendEmailInBackground(formDetails).catch((error) => {
+    if (error?.message === "API_NOT_CONFIGURED" || error?.message === "API_UNAVAILABLE") {
+      setResult(
+        "כרגע אין שליחת מייל מהאתר המפורסם כי חסר שרת API חיצוני.",
+        false
+      );
+      return;
+    }
+
     setResult(
       "נראה שכרגע אין התאמה, וגם שליחת המייל כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
       false

@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
+import cors from "cors";
 
 dotenv.config();
 
@@ -70,6 +71,7 @@ function formatLeadEmailHtml(details) {
 }
 
 app.use(express.json({ limit: "200kb" }));
+app.use(cors());
 app.use(express.static(__dirname));
 
 app.post("/api/send-email", async (req, res) => {
