@@ -18,6 +18,17 @@ function getEmailApiUrl() {
   return "/api/send-email";
 }
 
+const debugEnabled =
+  window.location.hostname === "localhost" ||
+  window.location.hostname.endsWith("github.io") ||
+  window.location.search.includes("debug=1");
+
+function debugLog(...args) {
+  if (debugEnabled) {
+    console.log("[ROKI DEBUG]", ...args);
+  }
+}
+
 function setResult(message, isApproved) {
   resultBox.textContent = message;
   resultBox.classList.remove("ok", "no");
@@ -27,8 +38,10 @@ function setResult(message, isApproved) {
 
 async function sendEmailInBackground(details) {
   const emailApiUrl = getEmailApiUrl();
+  debugLog("Resolved email API URL:", emailApiUrl);
 
   if (!emailApiUrl) {
+    debugLog("Email API URL missing. Check config.js ROKI_API_BASE_URL.");
     throw new Error("API_NOT_CONFIGURED");
   }
 
@@ -40,8 +53,11 @@ async function sendEmailInBackground(details) {
     body: JSON.stringify({ details }),
   });
 
+  debugLog("Email API response status:", response.status);
+
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
+    debugLog("Email API error payload:", data);
     if (response.status === 404 || response.status === 405) {
       throw new Error("API_UNAVAILABLE");
     }

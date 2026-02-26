@@ -74,6 +74,15 @@ app.use(express.json({ limit: "200kb" }));
 app.use(cors());
 app.use(express.static(__dirname));
 
+app.use((req, _res, next) => {
+  if (req.path === "/health") {
+    return next();
+  }
+
+  console.log(`[request] ${req.method} ${req.path}`);
+  return next();
+});
+
 app.get("/health", (_req, res) => {
   return res.json({ ok: true });
 });
@@ -82,6 +91,12 @@ app.post("/api/send-email", async (req, res) => {
   try {
     const details = req.body?.details;
 
+    console.log("[email] send-email called", {
+      hasDetails: Boolean(details),
+      fullName: details?.fullName,
+      email: details?.email,
+    });
+
     if (!details || typeof details !== "object") {
       return res.status(400).json({ ok: false, error: "INVALID_PAYLOAD" });
     }
@@ -89,6 +104,7 @@ app.post("/api/send-email", async (req, res) => {
     const missingEmailEnv = getMissingEmailEnvKeys();
 
     if (missingEmailEnv.length) {
+      console.error("[email] missing env vars", missingEmailEnv);
       return res.status(500).json({
         ok: false,
         error: "MISSING_EMAIL_ENV",
@@ -114,8 +130,20 @@ app.post("/api/send-email", async (req, res) => {
       html: formatLeadEmailHtml(details),
     });
 
+    console.log("[email] sendMail success", {
+      to: process.env.MAIL_TO,
+      from: process.env.MAIL_FROM,
+    });
+
     return res.json({ ok: true });
-  } catch {
+  } catch (error) {
+    console.error("[email] sendMail failed", {
+      message: error?.message,
+      code: error?.code,
+      response: error?.response,
+      command: error?.command,
+    });
+
     return res.status(500).json({ ok: false, error: "EMAIL_SEND_FAILED" });
   }
 });
