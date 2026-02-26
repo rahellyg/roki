@@ -2,10 +2,12 @@ import express from "express";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import dns from "dns";
 import nodemailer from "nodemailer";
 import cors from "cors";
 
 dotenv.config();
+dns.setDefaultResultOrder("ipv4first");
 
 const app = express();
 const __filename = fileURLToPath(import.meta.url);
