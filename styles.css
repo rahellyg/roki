@@ -150,14 +150,30 @@ fieldset {
   border-radius: 12px;
   padding: 12px;
   background: rgba(255, 255, 255, 0.46);
+  text-align: center;
+}
+
+fieldset legend {
+  text-align: right;
+  margin-bottom: 10px;
 }
 
 fieldset label {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  margin: 0 8px;
+  margin: 0 10px;
   font-weight: 500;
+  justify-content: flex-start;
+  direction: rtl;
+  align-self: auto;
+  width: auto;
+}
+
+fieldset input[type="radio"] {
+  width: auto;
+  padding: 0;
+  margin: 0;
 }
 
 select,
@@ -228,8 +244,8 @@ button {
 
 .result.ok {
   background: var(--accent-soft);
-  border-color: var(--accent);
-  color: #d9ffe9;
+  border-color: var(--accent-2);
+  color: var(--text);
 }
 
 .result.no {

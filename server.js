@@ -2,6 +2,7 @@ import express from "express";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
+import nodemailer from "nodemailer";
 
 dotenv.config();
 
@@ -16,8 +17,21 @@ const requiredEnv = [
   "WHATSAPP_RECIPIENT",
 ];
 
+const requiredEmailEnv = [
+  "SMTP_HOST",
+  "SMTP_PORT",
+  "SMTP_USER",
+  "SMTP_PASS",
+  "MAIL_FROM",
+  "MAIL_TO",
+];
+
 function getMissingEnvKeys() {
   return requiredEnv.filter((key) => !process.env[key]);
+}
+
+function getMissingEmailEnvKeys() {
+  return requiredEmailEnv.filter((key) => !process.env[key]);
 }
 
 function formatLeadMessage(details) {
@@ -38,8 +52,67 @@ function formatLeadMessage(details) {
   ].join("\n");
 }
 
+function formatLeadEmailHtml(details) {
+  return `
+    <h2>ליד חדש מטופס ההתאמה - Roki</h2>
+    <p><strong>שם:</strong> ${details.fullName}</p>
+    <p><strong>טלפון:</strong> ${details.phone}</p>
+    <p><strong>מייל:</strong> ${details.email}</p>
+    <hr />
+    <p><strong>מוצר/שירות:</strong> ${details.productOffer}</p>
+    <p><strong>ביצוע משימות:</strong> ${details.tasks === "yes" ? "כן" : "לא"}</p>
+    <p><strong>פתיחות לתחקור DNA:</strong> ${details.dna === "yes" ? "כן" : "לא"}</p>
+    <p><strong>שעות בשבוע:</strong> ${details.commitment}</p>
+    <p><strong>מידע נוסף:</strong> ${details.extraInfo || "לא צוין"}</p>
+    <hr />
+    <p><strong>סטטוס התאמה:</strong> ${details.approved ? "מתאים/ה" : "לא מתאים/ה כרגע"}</p>
+  `;
+}
+
 app.use(express.json({ limit: "200kb" }));
 app.use(express.static(__dirname));
+
+app.post("/api/send-email", async (req, res) => {
+  try {
+    const details = req.body?.details;
+
+    if (!details || typeof details !== "object") {
+      return res.status(400).json({ ok: false, error: "INVALID_PAYLOAD" });
+    }
+
+    const missingEmailEnv = getMissingEmailEnvKeys();
+
+    if (missingEmailEnv.length) {
+      return res.status(500).json({
+        ok: false,
+        error: "MISSING_EMAIL_ENV",
+        missing: missingEmailEnv,
+      });
+    }
+
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
+      auth: {
+        user: process.env.SMTP_USER,
+        pass: process.env.SMTP_PASS,
+      },
+    });
+
+    await transporter.sendMail({
+      from: process.env.MAIL_FROM,
+      to: process.env.MAIL_TO,
+      subject: `ליד חדש מ-${details.fullName}`,
+      text: formatLeadMessage(details),
+      html: formatLeadEmailHtml(details),
+    });
+
+    return res.json({ ok: true });
+  } catch {
+    return res.status(500).json({ ok: false, error: "EMAIL_SEND_FAILED" });
+  }
+});
 
 app.post("/api/send-whatsapp", async (req, res) => {
   try {

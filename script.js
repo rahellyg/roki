@@ -10,8 +10,8 @@ function setResult(message, isApproved) {
   scheduleWrap.classList.toggle("hidden", !isApproved);
 }
 
-async function sendWhatsappInBackground(details) {
-  const response = await fetch("/api/send-whatsapp", {
+async function sendEmailInBackground(details) {
+  const response = await fetch("/api/send-email", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -21,7 +21,7 @@ async function sendWhatsappInBackground(details) {
 
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
-    throw new Error(data.error || "FAILED_TO_SEND_WHATSAPP");
+    throw new Error(data.error || "FAILED_TO_SEND_EMAIL");
   }
 }
 
@@ -73,9 +73,9 @@ filterForm.addEventListener("submit", async (event) => {
       "מעולה! נראה שיש התאמה לקהילה. אפשר להמשיך לשלב הבא ולקבוע פגישה.",
       true
     );
-    sendWhatsappInBackground(formDetails).catch(() => {
+    sendEmailInBackground(formDetails).catch(() => {
       setResult(
-        "מעולה! נראה שיש התאמה לקהילה, אבל שליחת הוואטסאפ כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
+        "מעולה! נראה שיש התאמה לקהילה, אבל שליחת המייל כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
         true
       );
     });
@@ -86,9 +86,9 @@ filterForm.addEventListener("submit", async (event) => {
     "כרגע נראה שאין התאמה למסגרת העבודה שלנו. אם בעתיד תהיה פתיחות לשיתוף פעולה והכוונה, נשמח לבדוק שוב.",
     false
   );
-  sendWhatsappInBackground(formDetails).catch(() => {
+  sendEmailInBackground(formDetails).catch(() => {
     setResult(
-      "נראה שכרגע אין התאמה, וגם שליחת הוואטסאפ כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
+      "נראה שכרגע אין התאמה, וגם שליחת המייל כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
       false
     );
   });
