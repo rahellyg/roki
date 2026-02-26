@@ -10,7 +10,7 @@ const port = Number(process.env.PORT) || 3002;
 if (!process.env.MAIL_FROM) process.env.MAIL_FROM = "rahelly23@gmail.com";
 if (!process.env.MAIL_TO) process.env.MAIL_TO = "m.c.bus@outlook.com";
 if (!process.env.SMTP_HOST) process.env.SMTP_HOST = "smtp.gmail.com";
-if (!process.env.SMTP_PASS) process.env.SMTP_PASS = "unbp raqe riry tnlb";
+if (!process.env.SMTP_PASS) process.env.SMTP_PASS = "";
 if (!process.env.SMTP_PORT) process.env.SMTP_PORT = "587";
 if (!process.env.SMTP_USER) process.env.SMTP_USER = "rahelly23@gmail.com";
 
