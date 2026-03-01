@@ -34,6 +34,13 @@ function setResult(message, isApproved) {
   scheduleWrap.classList.toggle("hidden", !isApproved);
 }
 
+function resetFormAndPageState() {
+  filterForm.reset();
+  resultBox.textContent = "";
+  resultBox.classList.remove("ok", "no");
+  scheduleWrap.classList.add("hidden");
+}
+
 function buildEmailJSTemplateParams(details) {
   const message = [
     details.fullName && `שם: ${details.fullName}`,
@@ -62,7 +69,7 @@ function buildEmailJSTemplateParams(details) {
   };
 }
 
-async function sendEmailInBackground(details) {
+async function sendEmail(details) {
   if (!emailjsConfigured) {
     debugLog("Email not configured. Set EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID in config.js.");
     throw new Error("EMAIL_NOT_CONFIGURED");
@@ -128,7 +135,11 @@ filterForm.addEventListener("submit", async (event) => {
       "מעולה! נראה שיש התאמה לקהילה. אפשר להמשיך לשלב הבא ולקבוע פגישה.",
       true
     );
-    sendEmailInBackground(formDetails).catch((error) => {
+    sendEmail(formDetails)
+      .then(() => {
+        resetFormAndPageState();
+      })
+      .catch((error) => {
       if (error?.message === "EMAIL_NOT_CONFIGURED" || error?.message === "EMAIL_TO_NOT_CONFIGURED") {
         setResult(
           "שליחת מייל לא מוגדרת. נא להגדיר EmailJS ב-config.js (כולל EMAILJS_TO_EMAIL).",
@@ -140,7 +151,7 @@ filterForm.addEventListener("submit", async (event) => {
         "מעולה! נראה שיש התאמה לקהילה, אבל שליחת המייל כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
         true
       );
-    });
+      });
     return;
   }
 
@@ -148,7 +159,11 @@ filterForm.addEventListener("submit", async (event) => {
     "כרגע נראה שאין התאמה למסגרת העבודה שלנו. אם בעתיד תהיה פתיחות לשיתוף פעולה והכוונה, נשמח לבדוק שוב.",
     false
   );
-  sendEmailInBackground(formDetails).catch((error) => {
+  sendEmail(formDetails)
+    .then(() => {
+      resetFormAndPageState();
+    })
+    .catch((error) => {
     if (error?.message === "EMAIL_NOT_CONFIGURED" || error?.message === "EMAIL_TO_NOT_CONFIGURED") {
       setResult(
         "שליחת מייל לא מוגדרת. נא להגדיר EmailJS ב-config.js (כולל EMAILJS_TO_EMAIL).",
@@ -160,7 +175,7 @@ filterForm.addEventListener("submit", async (event) => {
       "נראה שכרגע אין התאמה, וגם שליחת המייל כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
       false
     );
-  });
+    });
 });
 
 scheduleButton.addEventListener("click", () => {
