@@ -1,0 +1,69 @@
+name: Deploy GitHub Pages
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate config.js from GitHub Secrets
+        env:
+          EMAILJS_PUBLIC_KEY: ${{ secrets.EMAILJS_PUBLIC_KEY }}
+          EMAILJS_SERVICE_ID: ${{ secrets.EMAILJS_SERVICE_ID }}
+          EMAILJS_TEMPLATE_ID: ${{ secrets.EMAILJS_TEMPLATE_ID }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          template = Path('config.template.js').read_text(encoding='utf-8')
+          values = {
+              '__EMAILJS_PUBLIC_KEY__': os.getenv('EMAILJS_PUBLIC_KEY', '').strip(),
+              '__EMAILJS_SERVICE_ID__': os.getenv('EMAILJS_SERVICE_ID', '').strip(),
+              '__EMAILJS_TEMPLATE_ID__': os.getenv('EMAILJS_TEMPLATE_ID', '').strip(),
+          }
+          for key, value in values.items():
+              template = template.replace(key, value)
+          Path('config.js').write_text(template, encoding='utf-8')
+          PY
+
+      - name: Create deploy artifact
+        run: |
+          mkdir -p dist
+          rsync -av --delete \
+            --exclude '.git' \
+            --exclude '.github' \
+            --exclude 'node_modules' \
+            --exclude '.env' \
+            --exclude '.env.*' \
+            ./ dist/
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: ./dist
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

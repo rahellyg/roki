@@ -1,5 +1,21 @@
 # roki
 
+## GitHub Secrets עבור EmailJS (ל-GitHub Pages)
+
+הפרויקט מוגדר כך ש-`config.js` נוצר בזמן Deploy מ-GitHub Actions, במקום לשמור ערכים רגישים בקוד.
+
+יש להגדיר ב-Repository Settings → Secrets and variables → Actions את הסודות:
+
+- `EMAILJS_PUBLIC_KEY`
+- `EMAILJS_SERVICE_ID`
+- `EMAILJS_TEMPLATE_ID`
+
+`EMAILJS_TO_EMAIL` מוגדר כערך רגיל בקובץ `config.template.js` (לא Secret).
+
+לאחר שמירה, כל `push` ל-`main` יריץ את ה-Workflow בקובץ `.github/workflows/deploy-pages.yml` וייצר `config.js` עם ערכי הסודות.
+
+לפיתוח מקומי אפשר להזין זמנית ערכים ידנית ב-`config.js`.
+
 ## הפעלה עם שליחת מייל (SMTP)
 
 1. התקנת תלויות:

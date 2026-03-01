@@ -1,5 +1,6 @@
-// EmailJS — send email from the browser (no server). From https://dashboard.emailjs.com
-window.EMAILJS_PUBLIC_KEY = "tonKc3pdozyScs8nk";
-window.EMAILJS_SERVICE_ID = "service_9ndbmvg";
-window.EMAILJS_TEMPLATE_ID = "template_q8uo95p";
+// Generated at deploy time by GitHub Actions from repository secrets.
+// For local testing, you can temporarily place your own values here.
+window.EMAILJS_PUBLIC_KEY = "";
+window.EMAILJS_SERVICE_ID = "";
+window.EMAILJS_TEMPLATE_ID = "";
 window.EMAILJS_TO_EMAIL = "m.c.bus@outlook.com";
