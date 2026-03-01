@@ -1,7 +1,29 @@
 import express from "express";
+import cors from "cors";
 import nodemailer from "nodemailer";
 
 const app = express();
+
+const allowedOrigins = [
+  "https://rahellyg.github.io",
+  "http://localhost:3000",
+  "http://127.0.0.1:3000",
+  /^http:\/\/localhost(:\d+)?$/,
+  /^http:\/\/127\.0\.0\.1(:\d+)?$/,
+];
+app.use(
+  cors({
+    origin(origin, cb) {
+      if (!origin) return cb(null, true);
+      const allowed = allowedOrigins.some((o) =>
+        typeof o === "string" ? o === origin : o.test(origin)
+      );
+      return cb(null, allowed ? origin : false);
+    },
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type"],
+  })
+);
 app.use(express.json());
 
 const port = Number(process.env.PORT) || 3002;
