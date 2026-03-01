@@ -12,19 +12,32 @@ const allowedOrigins = [
   /^http:\/\/localhost(:\d+)?$/,
   /^http:\/\/127\.0\.0\.1(:\d+)?$/,
 ];
+
+function corsOrigin(origin, cb) {
+  if (!origin) return cb(null, true);
+  const allowed = allowedOrigins.some((o) =>
+    typeof o === "string" ? o === origin : o.test(origin)
+  );
+  return cb(null, allowed ? origin : false);
+}
+
 app.use(
   cors({
-    origin(origin, cb) {
-      if (!origin) return cb(null, true);
-      const allowed = allowedOrigins.some((o) =>
-        typeof o === "string" ? o === origin : o.test(origin)
-      );
-      return cb(null, allowed ? origin : false);
-    },
+    origin: corsOrigin,
     methods: ["GET", "POST", "OPTIONS"],
-    allowedHeaders: ["Content-Type"],
+    allowedHeaders: ["Content-Type", "Accept"],
+    optionsSuccessStatus: 200,
+    credentials: false,
   })
 );
+// Ensure CORS header is set on every response when Origin is allowed (fallback if cors skips it)
+app.use((req, res, next) => {
+  const origin = req.get("Origin");
+  if (origin === "https://rahellyg.github.io" || (origin && /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) || (origin && /^http:\/\/localhost(:\d+)?$/.test(origin))) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  next();
+});
 app.use(express.json());
 
 const port = Number(process.env.PORT) || 3002;
@@ -70,6 +83,18 @@ function formatLeadEmailHtml(details) {
 
 app.get("/health", (req, res) => {
   res.status(200).json({ ok: true });
+});
+
+// Explicit preflight for send-email so CORS is always present
+app.options("/api/send-email", (req, res) => {
+  const origin = req.get("Origin");
+  if (origin && (origin === "https://rahellyg.github.io" || /^http:\/\/localhost(:\d+)?$/.test(origin) || /^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin))) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept");
+  res.setHeader("Access-Control-Max-Age", "86400");
+  res.sendStatus(204);
 });
 
 app.post("/api/send-email", async (req, res) => {
