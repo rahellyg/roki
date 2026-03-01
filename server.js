@@ -14,6 +14,15 @@ if (!process.env.SMTP_PASS) process.env.SMTP_PASS = "";
 if (!process.env.SMTP_PORT) process.env.SMTP_PORT = "587";
 if (!process.env.SMTP_USER) process.env.SMTP_USER = "rahelly23@gmail.com";
 
+const EMAIL_ENV_KEYS = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "MAIL_FROM", "MAIL_TO"];
+
+function getMissingEmailEnvKeys() {
+  return EMAIL_ENV_KEYS.filter((key) => {
+    const v = process.env[key];
+    return v === undefined || v === null || String(v).trim() === "";
+  });
+}
+
 function formatLeadMessage(details) {
   return [
     details.fullName && `Name: ${details.fullName}`,
@@ -30,6 +39,10 @@ function formatLeadEmailHtml(details) {
   return `<p>${formatLeadMessage(details).replace(/\n/g, "<br>")}</p>`;
 }
 
+app.get("/health", (req, res) => {
+  res.status(200).json({ ok: true });
+});
+
 app.post("/api/send-email", async (req, res) => {
     try {
       const details = req.body?.details;
@@ -43,18 +56,17 @@ app.post("/api/send-email", async (req, res) => {
       if (!details || typeof details !== "object") {
         return res.status(400).json({ ok: false, error: "INVALID_PAYLOAD" });
       }
-  
-      // const missingEmailEnv = getMissingEmailEnvKeys();
-  
-    //   if (missingEmailEnv.length) {
-    //     console.error("[email] missing env vars", missingEmailEnv);
-    //     return res.status(500).json({
-    //       ok: false,
-    //       error: "MISSING_EMAIL_ENV",
-    //       missing: missingEmailEnv,
-    //     });
-    //   }
-  
+
+      const missingEmailEnv = getMissingEmailEnvKeys();
+      if (missingEmailEnv.length) {
+        console.error("[email] missing env vars", missingEmailEnv);
+        return res.status(500).json({
+          ok: false,
+          error: "MISSING_EMAIL_ENV",
+          missing: missingEmailEnv,
+        });
+      }
+
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT),
@@ -90,8 +102,12 @@ app.post("/api/send-email", async (req, res) => {
         response: error?.response,
         command: error?.command,
       });
-  
-      return res.status(500).json({ ok: false, error: "EMAIL_SEND_FAILED" });
+
+      return res.status(500).json({
+        ok: false,
+        error: "EMAIL_SEND_FAILED",
+        code: error?.code || null,
+      });
     }
   });
   
