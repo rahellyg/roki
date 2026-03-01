@@ -1,0 +1,50 @@
+name: Sync config.js for Legacy Pages
+
+on:
+  push:
+    branches: ["main"]
+
+permissions:
+  contents: write
+
+jobs:
+  sync-config:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Generate config.js from GitHub Secrets
+        env:
+          EMAILJS_PUBLIC_KEY: ${{ secrets.EMAILJS_PUBLIC_KEY }}
+          EMAILJS_SERVICE_ID: ${{ secrets.EMAILJS_SERVICE_ID }}
+          EMAILJS_TEMPLATE_ID: ${{ secrets.EMAILJS_TEMPLATE_ID }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          template = Path('config.template.js').read_text(encoding='utf-8')
+          values = {
+              '__EMAILJS_PUBLIC_KEY__': os.getenv('EMAILJS_PUBLIC_KEY', '').strip(),
+              '__EMAILJS_SERVICE_ID__': os.getenv('EMAILJS_SERVICE_ID', '').strip(),
+              '__EMAILJS_TEMPLATE_ID__': os.getenv('EMAILJS_TEMPLATE_ID', '').strip(),
+          }
+          for key, value in values.items():
+              template = template.replace(key, value)
+          Path('config.js').write_text(template, encoding='utf-8')
+          PY
+
+      - name: Commit updated config.js
+        run: |
+          if git diff --quiet -- config.js; then
+            echo "No config.js changes"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add config.js
+          git commit -m "chore: sync config.js from secrets [skip ci]"
+          git push
