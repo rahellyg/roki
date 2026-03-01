@@ -58,6 +58,10 @@ async function sendEmailInBackground(details) {
   if (!response.ok) {
     const data = await response.json().catch(() => ({}));
     debugLog("Email API error payload:", data);
+    // Always log server error details so you can fix env/SMTP on Render
+    if (response.status >= 500) {
+      console.error("[ROKI] Email API error:", data.error || "FAILED_TO_SEND_EMAIL", data.missing ? "Missing env vars: " + data.missing.join(", ") : "", data.code ? "Code: " + data.code : "");
+    }
     if (response.status === 404 || response.status === 405) {
       throw new Error("API_UNAVAILABLE");
     }
