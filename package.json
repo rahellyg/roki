@@ -1,1 +1,1 @@
-{"name":"roki","version":"1.0.0","private":true,"type":"module","scripts":{"start":"node server.js"},"dependencies":{"cors":"^2.8.6","dotenv":"^16.4.7","express":"^4.21.2","nodemailer":"^8.0.1","resend":"^4.0.0"}}
+{"name":"roki","version":"1.0.0","private":true,"type":"module","scripts":{"start":"node serve.cjs","serve":"node serve.cjs"},"dependencies":{"cors":"^2.8.6","dotenv":"^16.4.7","express":"^4.21.2","nodemailer":"^8.0.1","resend":"^4.0.0"}}

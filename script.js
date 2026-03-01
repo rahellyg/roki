@@ -3,19 +3,17 @@ const resultBox = document.getElementById("result");
 const scheduleWrap = document.getElementById("scheduleWrap");
 const scheduleButton = document.getElementById("scheduleButton");
 
-const apiBaseUrl = (window.ROKI_API_BASE_URL || "").replace(/\/$/, "");
-const isGithubPages = window.location.hostname.endsWith("github.io");
+const emailjsPublicKey = (window.EMAILJS_PUBLIC_KEY || "").trim();
+const emailjsServiceId = (window.EMAILJS_SERVICE_ID || "").trim();
+const emailjsTemplateId = (window.EMAILJS_TEMPLATE_ID || "").trim();
+const emailjsConfigured =
+  typeof emailjs !== "undefined" &&
+  emailjsPublicKey &&
+  emailjsServiceId &&
+  emailjsTemplateId;
 
-function getEmailApiUrl() {
-  if (apiBaseUrl) {
-    return `${apiBaseUrl}/api/send-email`;
-  }
-
-  if (isGithubPages) {
-    return null;
-  }
-
-  return "/api/send-email";
+if (emailjsConfigured) {
+  emailjs.init(emailjsPublicKey);
 }
 
 const debugEnabled =
@@ -36,36 +34,46 @@ function setResult(message, isApproved) {
   scheduleWrap.classList.toggle("hidden", !isApproved);
 }
 
+function buildEmailJSTemplateParams(details) {
+  const message = [
+    details.fullName && `שם: ${details.fullName}`,
+    details.email && `אימייל: ${details.email}`,
+    details.phone && `טלפון: ${details.phone}`,
+    details.productOffer && `מוצר/שירות: ${details.productOffer}`,
+    details.tasks && `משימות עקבי: ${details.tasks}`,
+    details.dna && `תחקור DNA: ${details.dna}`,
+    details.commitment != null && `שעות בשבוע: ${details.commitment}`,
+    details.extraInfo && `מידע נוסף: ${details.extraInfo}`,
+    details.approved != null && `התאמה: ${details.approved ? "כן" : "לא"}`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const toEmail = (window.EMAILJS_TO_EMAIL || "business.pro2999@gmail.com").trim();
+  return {
+    from_name: details.fullName || "",
+    from_email: details.email || "",
+    phone: details.phone || "לא צוין",
+    message,
+    to_email: toEmail,
+    subject: `ליד חדש מ-${details.fullName || "רוקי"} - שאלון רוקי`,
+  };
+}
+
 async function sendEmailInBackground(details) {
-  const emailApiUrl = getEmailApiUrl();
-  debugLog("Resolved email API URL:", emailApiUrl);
-
-  if (!emailApiUrl) {
-    debugLog("Email API URL missing. Check config.js ROKI_API_BASE_URL.");
-    throw new Error("API_NOT_CONFIGURED");
+  if (!emailjsConfigured) {
+    debugLog("Email not configured. Set EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID in config.js.");
+    throw new Error("EMAIL_NOT_CONFIGURED");
   }
-
-  const response = await fetch(emailApiUrl, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ details }),
-  });
-
-  debugLog("Email API response status:", response.status);
-
-  if (!response.ok) {
-    const data = await response.json().catch(() => ({}));
-    debugLog("Email API error payload:", data);
-    // Always log server error details so you can fix env/SMTP on Render
-    if (response.status >= 500) {
-      console.error("[ROKI] Email API error:", data.error || "FAILED_TO_SEND_EMAIL", data.missing ? "Missing env vars: " + data.missing.join(", ") : "", data.code ? "Code: " + data.code : "");
-    }
-    if (response.status === 404 || response.status === 405) {
-      throw new Error("API_UNAVAILABLE");
-    }
-    throw new Error(data.error || "FAILED_TO_SEND_EMAIL");
+  debugLog("Sending via EmailJS");
+  const templateParams = buildEmailJSTemplateParams(details);
+  const response = await emailjs.send(
+    emailjsServiceId,
+    emailjsTemplateId,
+    templateParams
+  );
+  debugLog("EmailJS response:", response);
+  if (response?.status !== 200) {
+    throw new Error("FAILED_TO_SEND_EMAIL");
   }
 }
 
@@ -118,14 +126,13 @@ filterForm.addEventListener("submit", async (event) => {
       true
     );
     sendEmailInBackground(formDetails).catch((error) => {
-      if (error?.message === "API_NOT_CONFIGURED" || error?.message === "API_UNAVAILABLE") {
+      if (error?.message === "EMAIL_NOT_CONFIGURED") {
         setResult(
-          "האתר פורסם כסטטי ולכן שליחת מייל אינה זמינה כרגע. כדי לאפשר שליחה בפרסום צריך לחבר שרת API חיצוני.",
+          "שליחת מייל לא מוגדרת. נא להגדיר EmailJS ב-config.js.",
           true
         );
         return;
       }
-
       setResult(
         "מעולה! נראה שיש התאמה לקהילה, אבל שליחת המייל כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
         true
@@ -139,14 +146,13 @@ filterForm.addEventListener("submit", async (event) => {
     false
   );
   sendEmailInBackground(formDetails).catch((error) => {
-    if (error?.message === "API_NOT_CONFIGURED" || error?.message === "API_UNAVAILABLE") {
+    if (error?.message === "EMAIL_NOT_CONFIGURED") {
       setResult(
-        "כרגע אין שליחת מייל מהאתר המפורסם כי חסר שרת API חיצוני.",
+        "שליחת מייל לא מוגדרת. נא להגדיר EmailJS ב-config.js.",
         false
       );
       return;
     }
-
     setResult(
       "נראה שכרגע אין התאמה, וגם שליחת המייל כרגע נכשלה. אפשר לנסות שוב בעוד רגע.",
       false
