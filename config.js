@@ -2,4 +2,4 @@
 window.EMAILJS_PUBLIC_KEY = "tonKc3pdozyScs8nk";
 window.EMAILJS_SERVICE_ID = "service_9ndbmvg";
 window.EMAILJS_TEMPLATE_ID = "template_q8uo95p";
-window.EMAILJS_TO_EMAIL = "business.pro2999@gmail.com";
+window.EMAILJS_TO_EMAIL = "m.c.bus@outlook.com";
