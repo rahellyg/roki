@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 const app = express();
 
@@ -36,13 +37,19 @@ if (!process.env.SMTP_PASS) process.env.SMTP_PASS = "";
 if (!process.env.SMTP_PORT) process.env.SMTP_PORT = "587";
 if (!process.env.SMTP_USER) process.env.SMTP_USER = "rahelly23@gmail.com";
 
-const EMAIL_ENV_KEYS = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "MAIL_FROM", "MAIL_TO"];
+const RESEND_ENV_KEYS = ["RESEND_API_KEY", "MAIL_FROM", "MAIL_TO"];
+const SMTP_ENV_KEYS = ["SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASS", "MAIL_FROM", "MAIL_TO"];
 
-function getMissingEmailEnvKeys() {
-  return EMAIL_ENV_KEYS.filter((key) => {
+function getMissingEnvKeys(keys) {
+  return keys.filter((key) => {
     const v = process.env[key];
     return v === undefined || v === null || String(v).trim() === "";
   });
+}
+
+function useResend() {
+  const key = process.env.RESEND_API_KEY;
+  return key !== undefined && key !== null && String(key).trim() !== "";
 }
 
 function formatLeadMessage(details) {
@@ -79,21 +86,50 @@ app.post("/api/send-email", async (req, res) => {
         return res.status(400).json({ ok: false, error: "INVALID_PAYLOAD" });
       }
 
-      const missingEmailEnv = getMissingEmailEnvKeys();
-      if (missingEmailEnv.length) {
-        console.error("[email] missing env vars", missingEmailEnv);
+      const useResendApi = useResend();
+      const requiredKeys = useResendApi ? RESEND_ENV_KEYS : SMTP_ENV_KEYS;
+      const missing = getMissingEnvKeys(requiredKeys);
+      if (missing.length) {
+        console.error("[email] missing env vars", missing);
         return res.status(500).json({
           ok: false,
           error: "MISSING_EMAIL_ENV",
-          missing: missingEmailEnv,
+          missing,
         });
+      }
+
+      const subject = `ליד חדש מ-${details.fullName}`;
+      const text = formatLeadMessage(details);
+      const html = formatLeadEmailHtml(details);
+      const from = process.env.MAIL_FROM;
+      const to = process.env.MAIL_TO;
+
+      if (useResendApi) {
+        const resend = new Resend(process.env.RESEND_API_KEY);
+        const { data, error } = await resend.emails.send({
+          from,
+          to: [to],
+          subject,
+          html,
+          text,
+        });
+        if (error) {
+          console.error("[email] Resend failed", error);
+          return res.status(500).json({
+            ok: false,
+            error: "EMAIL_SEND_FAILED",
+            code: error?.name || null,
+          });
+        }
+        console.log("[email] Resend success", { to, from, id: data?.id });
+        return res.json({ ok: true });
       }
 
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
         port: Number(process.env.SMTP_PORT),
         secure: String(process.env.SMTP_SECURE || "false").toLowerCase() === "true",
-        family: 4, // Force IPv4 (Render often cannot reach Gmail over IPv6)
+        family: 4,
         connectionTimeout: Number(process.env.SMTP_CONNECTION_TIMEOUT || 10000),
         greetingTimeout: Number(process.env.SMTP_GREETING_TIMEOUT || 10000),
         socketTimeout: Number(process.env.SMTP_SOCKET_TIMEOUT || 15000),
@@ -102,20 +138,16 @@ app.post("/api/send-email", async (req, res) => {
           pass: process.env.SMTP_PASS,
         },
       });
-  
+
       await transporter.sendMail({
-        from: process.env.MAIL_FROM,
-        to: process.env.MAIL_TO,
-        subject: `ליד חדש מ-${details.fullName}`,
-        text: formatLeadMessage(details),
-        html: formatLeadEmailHtml(details),
+        from,
+        to,
+        subject,
+        text,
+        html,
       });
-  
-      console.log("[email] sendMail success", {
-        to: process.env.MAIL_TO,
-        from: process.env.MAIL_FROM,
-      });
-  
+
+      console.log("[email] sendMail success", { to, from });
       return res.json({ ok: true });
     } catch (error) {
       console.error("[email] sendMail failed", {
