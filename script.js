@@ -48,7 +48,10 @@ function buildEmailJSTemplateParams(details) {
   ]
     .filter(Boolean)
     .join("\n");
-  const toEmail = (window.EMAILJS_TO_EMAIL || "business.pro2999@gmail.com").trim();
+  const toEmail = (window.EMAILJS_TO_EMAIL || "").trim();
+  if (!toEmail) {
+    throw new Error("EMAIL_TO_NOT_CONFIGURED");
+  }
   return {
     from_name: details.fullName || "",
     from_email: details.email || "",
@@ -64,8 +67,8 @@ async function sendEmailInBackground(details) {
     debugLog("Email not configured. Set EMAILJS_PUBLIC_KEY, EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID in config.js.");
     throw new Error("EMAIL_NOT_CONFIGURED");
   }
-  debugLog("Sending via EmailJS");
   const templateParams = buildEmailJSTemplateParams(details);
+  debugLog("Sending via EmailJS", { toEmail: templateParams.to_email });
   const response = await emailjs.send(
     emailjsServiceId,
     emailjsTemplateId,
@@ -126,9 +129,9 @@ filterForm.addEventListener("submit", async (event) => {
       true
     );
     sendEmailInBackground(formDetails).catch((error) => {
-      if (error?.message === "EMAIL_NOT_CONFIGURED") {
+      if (error?.message === "EMAIL_NOT_CONFIGURED" || error?.message === "EMAIL_TO_NOT_CONFIGURED") {
         setResult(
-          "שליחת מייל לא מוגדרת. נא להגדיר EmailJS ב-config.js.",
+          "שליחת מייל לא מוגדרת. נא להגדיר EmailJS ב-config.js (כולל EMAILJS_TO_EMAIL).",
           true
         );
         return;
@@ -146,9 +149,9 @@ filterForm.addEventListener("submit", async (event) => {
     false
   );
   sendEmailInBackground(formDetails).catch((error) => {
-    if (error?.message === "EMAIL_NOT_CONFIGURED") {
+    if (error?.message === "EMAIL_NOT_CONFIGURED" || error?.message === "EMAIL_TO_NOT_CONFIGURED") {
       setResult(
-        "שליחת מייל לא מוגדרת. נא להגדיר EmailJS ב-config.js.",
+        "שליחת מייל לא מוגדרת. נא להגדיר EmailJS ב-config.js (כולל EMAILJS_TO_EMAIL).",
         false
       );
       return;
